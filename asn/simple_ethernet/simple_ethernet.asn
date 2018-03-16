@@ -1,0 +1,10 @@
+ETHERNET DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+    UINT16 ::= INTEGER (0 .. 65535)
+
+    EthernetFrame ::= SEQUENCE {
+        destination OCTET STRING (SIZE(6)),
+        source OCTET STRING (SIZE(6)),
+        -- length INTEGER (0 .. 65535),
+        payload OCTET STRING (SIZE(46..1500))
+    }
+END

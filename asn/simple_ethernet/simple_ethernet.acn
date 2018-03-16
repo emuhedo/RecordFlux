@@ -1,0 +1,8 @@
+ETHERNET DEFINITIONS ::= BEGIN
+    EthernetFrame [] {
+        destination [size 6],
+        source [size 6],
+        length UINT16 [size 16, encoding pos-int],
+        payload [size length]
+    }
+END

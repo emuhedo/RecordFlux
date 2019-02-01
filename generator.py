@@ -1,7 +1,7 @@
 import itertools
 from abc import ABC, abstractmethod, abstractproperty
 from collections import OrderedDict
-from typing import Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 from model import (Add, And, Array, Attribute, Div, Enumeration, Equal, Expr, Field, First,
                    GreaterEqual, Last, Length, LengthValue, Less, LessEqual, LogExpr, MathExpr,
@@ -357,6 +357,9 @@ class IfExpression(LogExpr):
         result += ')'
         return result
 
+    def search(self, search_function: Callable[[Expr], List[Any]]) -> List[Any]:
+        raise NotImplementedError
+
     def simplified(self, facts: Dict[Attribute, MathExpr] = None) -> LogExpr:
         return self
 
@@ -485,6 +488,9 @@ class MathCall(Call, MathExpr):
 
 
 class LogCall(Call, LogExpr):
+    def search(self, search_function: Callable[[Expr], List[Any]]) -> List[Any]:
+        raise NotImplementedError
+
     def simplified(self, facts: Dict[Attribute, MathExpr] = None) -> LogExpr:
         return self
 
@@ -571,6 +577,9 @@ class FalseExpr(LogExpr):
 
     def __str__(self) -> str:
         return 'False'
+
+    def search(self, search_function: Callable[[Expr], List[Any]]) -> List[Any]:
+        raise NotImplementedError
 
     def simplified(self, facts: Dict['Attribute', 'MathExpr'] = None) -> LogExpr:
         return self

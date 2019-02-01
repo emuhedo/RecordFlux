@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from collections import OrderedDict
 from copy import copy
 from math import log
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 class Element(ABC):
@@ -22,6 +22,10 @@ class Expr(Element):
 
 class LogExpr(Expr):
     @abstractmethod
+    def search(self, search_function: Callable[[Expr], List[Any]]) -> List[Any]:
+        raise NotImplementedError
+
+    @abstractmethod
     def simplified(self, facts: Dict['Attribute', 'MathExpr'] = None) -> 'LogExpr':
         raise NotImplementedError
 
@@ -36,6 +40,9 @@ class TrueExpr(LogExpr):
 
     def __str__(self) -> str:
         return 'True'
+
+    def search(self, search_function: Callable[[Expr], List[Any]]) -> List[Any]:
+        return search_function(self)
 
     def simplified(self, facts: Dict['Attribute', 'MathExpr'] = None) -> LogExpr:
         return self
@@ -57,6 +64,9 @@ class BinLogExpr(LogExpr):
 
     def __str__(self) -> str:
         return '({} {} {})'.format(self.left, self.symbol(), self.right)
+
+    def search(self, search_function: Callable[[Expr], List[Any]]) -> List[Any]:
+        return search_function(self.left) + search_function(self.right)
 
     @abstractmethod
     def simplified(self, facts: Dict['Attribute', 'MathExpr'] = None) -> LogExpr:
@@ -548,6 +558,9 @@ class Relation(LogExpr):
     def __str__(self) -> str:
         return '{} {} {}'.format(self.left, self.symbol(), self.right)
 
+    def search(self, search_function: Callable[[Expr], List[Any]]) -> List[Any]:
+        return search_function(self.left) + search_function(self.right)
+
     def simplified(self, facts: Dict['Attribute', MathExpr] = None) -> 'Relation':
         left = self.left.simplified(facts)
         right = self.right.simplified(facts)
@@ -813,6 +826,8 @@ def evaluate(facts: Dict[Attribute, MathExpr],
 
     node = in_edge.target
 
+    check_conditions(node, visited or [])
+
     if in_edge.length is UNDEFINED:
         in_edge.length = node.type.size
     if in_edge.first is UNDEFINED:
@@ -849,6 +864,16 @@ def evaluate(facts: Dict[Attribute, MathExpr],
                                f'{variant_id}{encode_id(i)}'))
 
     return fields
+
+
+def check_conditions(node: Node, visited: List[Edge]) -> None:
+    known_nodes = [node.name]
+    known_nodes += [e.target.name for e in visited] if visited else []
+    for e in node.edges:
+        for attribute in e.condition.search(lambda x: [x] if isinstance(x, Attribute) else []):
+            if attribute.name not in known_nodes:
+                raise ModelError(f'unexpected reference to "{attribute}" in condition '
+                                 f'from "{node.name}" to "{e.target.name}"')
 
 
 def create_facts(facts: Dict[Attribute, MathExpr], edge: Edge) -> Dict[Attribute, MathExpr]:

@@ -5,6 +5,8 @@ with In_Ethernet.Tests;
 with In_IPv4.Tests;
 with TLV.Tests;
 with Enumeration.Tests;
+with TLS_Record.Tests;
+with TLS_Handshake.Tests;
 
 package body Test_Suite is
 
@@ -18,6 +20,8 @@ package body Test_Suite is
       Result.Add_Test (new In_IPv4.Tests.Test);
       Result.Add_Test (new TLV.Tests.Test);
       Result.Add_Test (new Enumeration.Tests.Test);
+      Result.Add_Test (new TLS_Record.Tests.Test);
+      Result.Add_Test (new TLS_Handshake.Tests.Test);
       return Result;
    end Suite;
 
